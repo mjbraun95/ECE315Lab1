@@ -242,8 +242,30 @@ static void prvRxTask( void *pvParameters )
 		//...For RGB led, look at the function that was used in previous labs for writing the value to the led. Initialization and color definition is already provided to you in this file.
 		/***************************************/
 
+		u32 store_operands[2];
+		u32 store_operation[1];
+		int result=0;
+		xQueueReceive(xQueue, &store_operands[0], pdMS_TO_TICKS(1500));
+		xQueueReceive(xQueue, &store_operands[1], pdMS_TO_TICKS(1500));
+		xQueueReceive(xQueue, &store_operation[1], pdMS_TO_TICKS(1500));
+
+		/* unsure
+		switch(store_operation[1]){
+		case A: result = store_operands[0] + store_operands[1]; break;
+		case B: result = store_operands[0] - store_operands[1]; break;
+		case C: result = store_operands[0] / store_operands[1]; break;
+		case D: if(store_operands[0] == store_operands[1]) {
+			XGpio_DiscreteWrite(&RGBInst, 1, WHITE_IN_RGB);
+			vTaskDelay( xDelay1500ms );
+			break;
+		}
+		break;
+		}
+		*/
 
 
+
+		vTaskPrioritySet( xTxTask, ( uxPriority + 1 ) );
 	}
 }
 
