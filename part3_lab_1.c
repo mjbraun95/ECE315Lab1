@@ -176,10 +176,7 @@ static void prvTxTask( void *pvParameters )
 	        	 /*******************************/
 	        	 //write the logic to enter the updated variable here to the Queue
 	        	 /*******************************/
-	        	 if(last_key != 'x'){
-					 xil_printf("Storing the operand %c to Queue...\n",(char) last_key);
-					 xQueueSendToBack(xQueue, &last_key, pdMS_TO_TICKS(1500));
-
+				 xQueueSendToBack(xQueue, &current_value, pdMS_TO_TICKS(1500));
 		         current_value = 0;
 	         }
 	         //if 'E' is pressed, it resets the current value of the operand and allows the user to enter a new value
@@ -207,8 +204,8 @@ static void prvTxTask( void *pvParameters )
 	        	 //once two operands are in the queue, enter the third value to the queue to indicate the operation to be performed using A,B,C or D key
 	        	 //store the current key value to the queue as the third element
 	        	 /*****************************************/
-				 xil_printf("Storing the operation %c to Queue...\n",(char) current_value);
-				 xQueueSendToBack(xQueue, &current_value, pdMS_TO_TICKS(1500));
+				 xil_printf("Storing the operation %c to Queue...\n", (char) key);
+				 xQueueSendToBack(xQueue, &key, pdMS_TO_TICKS(1500));
 		         current_value = 0;
 	         }
 	      }
@@ -217,8 +214,9 @@ static void prvTxTask( void *pvParameters )
 
 	      last_status = status;
 	      usleep(1000);
+
+	      }
 	   }
-	}
 }
 /*-----------------------------------------------------------*/
 static void prvRxTask( void *pvParameters )
@@ -241,29 +239,58 @@ static void prvRxTask( void *pvParameters )
 		//...For the Palindrome check, think of a way to find the reverse of each operand (two loops for each operand!) Compared this reverse operand with the original operand.
 		//...For RGB led, look at the function that was used in previous labs for writing the value to the led. Initialization and color definition is already provided to you in this file.
 		/***************************************/
+		u32 store_operands[3];
+		int result = 0;
 
-		u32 store_operands[2];
-		u32 store_operation[1];
-		int result=0;
 		xQueueReceive(xQueue, &store_operands[0], pdMS_TO_TICKS(1500));
 		xQueueReceive(xQueue, &store_operands[1], pdMS_TO_TICKS(1500));
-		xQueueReceive(xQueue, &store_operation[1], pdMS_TO_TICKS(1500));
+		xQueueReceive(xQueue, &store_operands[2], pdMS_TO_TICKS(1500));
+		//xil_printf(" working up to here? %i %i %i \n", store_operands[0], store_operands[1], store_operands[2]);
 
-		/* unsure
-		switch(store_operation[1]){
-		case A: result = store_operands[0] + store_operands[1]; break;
-		case B: result = store_operands[0] - store_operands[1]; break;
-		case C: result = store_operands[0] / store_operands[1]; break;
-		case D: if(store_operands[0] == store_operands[1]) {
-			XGpio_DiscreteWrite(&RGBInst, 1, WHITE_IN_RGB);
-			vTaskDelay( xDelay1500ms );
-			break;
+		if (store_operands[0] < -2147483648 || store_operands[0] > 2147483647 ||
+				store_operands[1] < -2147483648 || store_operands[1] > 2147483647){
+			xil_printf("ERROR: NUMBER EXCEEDS MAX/MIN INT VALUE");
+		} else {
+			int n, reversed = 0, remainder, original;
+			original = store_operands[0];
+			n = store_operands[0];
+			while (n!=0) {
+				remainder = n % 10;
+				reversed = reversed * 10 + remainder;
+				n /= 10;
+			}
+
+			switch(store_operands[2]){
+				case 321: result = store_operands[0] + store_operands[1];
+					if(result < -2147483648 || result > 2147483648 ){
+						xil_printf("ERROR: RESULT EXCEEDS MAX/MIN INT VALUE");
+					} else {
+						xil_printf("%i + %i = %i\n", store_operands[0], store_operands[1], result);
+					}
+					break;
+				case 322: result = store_operands[0] - store_operands[1];
+					if(result < -2147483648 || result > 2147483648 ){
+						xil_printf("ERROR: RESULT EXCEEDS MAX/MIN INT VALUE");
+					} else {
+					xil_printf("%i - %i = %i\n", store_operands[0], store_operands[1], result);
+					}
+					break;
+				case 323: result = store_operands[0] * store_operands[1];
+					if(store_operands[0]>(2147483648/store_operands[1])){
+						xil_printf("ERROR: RESULT EXCEEDS MAX/MIN INT VALUE");
+					} else {
+					xil_printf("%i x %i = %i\n", store_operands[0], store_operands[1], result);
+					}
+					break;
+				case 324: if(original == reversed) {
+					xil_printf("%i is a palindrome of %i\n", original, reversed);
+					XGpio_DiscreteWrite(&RGBInst, 1, WHITE_IN_RGB);
+					vTaskDelay( xDelay1500ms );
+					XGpio_DiscreteWrite(&RGBInst, 1, 0x00);
+					break;
+				}
+			}
 		}
-		break;
-		}
-		*/
-
-
 
 		vTaskPrioritySet( xTxTask, ( uxPriority + 1 ) );
 	}
