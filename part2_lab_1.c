@@ -107,8 +107,8 @@ int main (void)
 
   /*************************************/
   //Set the directions of the buttons and SSD GPIO peripherals here
-  XGpio_SetDataDirection(&SSDInst, 1, 0x00);
-  XGpio_SetDataDirection(&BTNInst, 1, 0x00);
+  XGpio_SetDataDirection(&SSDInst, 1, 0x0);
+  XGpio_SetDataDirection(&BTNInst, 1, 0xF);
   /*************************************/
 
   xil_printf("Initialization Complete, System Ready!\n");
@@ -213,15 +213,14 @@ static void prvTxTask( void *pvParameters )
 				 	if(store_key != 'x'){
 						 xil_printf("Storing the operand %c to Queue...\n",(char) store_key);
 						 key_stroke_on_SSD = SSD_decode((int)store_key-48, 0);
-						 XGpio_DiscreteWrite(&SSDInst, 1, key_stroke_on_SSD);	//display the digit on SSD stored as an operand.
-	
+						 XGpio_DiscreteWrite(&SSDInst, 1, key_stroke_on_SSD);	//display the digit on right SSD stored as an operand.
 						 /****************************************/
 						 //Length of queue=2, hence we only store the key pressed value in queue, when 'E' will be pressed.
 						 //here you write the Queue function to store the value of the last key pressed before 'E'
 						 //hint: a variable is being used in this task that keeps the track of this key value (key presses before 'E')
 						 /****************************************/
-						 u32 value = SSD_decode(store_key, 0);
-						 xQueueSendToBack(xQueue, &value, pdMS_TO_TICKS(1500));
+						 u32 value = ((int)(store_key-48));
+						 xQueueSendToBack(xQueue, &value, 0);
 					}
 				 }
 	      }
@@ -252,48 +251,53 @@ static void prvRxTask( void *pvParameters )
 		/***************************************/
 		xQueueReceive(xQueue, &store_operands[0], pdMS_TO_TICKS(1500));
 		xQueueReceive(xQueue, &store_operands[1], pdMS_TO_TICKS(1500));
-		xil_printf("working up to here\r\n");
 
 		/***************************************/
 		//read the btn value here to check what user has pressed (^/|/&/%) and store it in say "btn_value" variable declared in this task
 		//For btn(3:0) --> "1000" is for %, "0100" is for &, "0010" is for | and "0001" is for ^
-		/***************************************/
 		btn = XGpio_DiscreteRead(&BTNInst, 1);
+		xil_printf("Push Buttons Status %x\r\n", btn);
+		/***************************************/
 		while(1)
 		{
-			xil_printf("Push Buttons Status %x\r\n", btn);
-			if (btn == 0001) {
-				btn_value = 1;
-				xil_printf("1\r\n");
-				break;
-			} else if (btn == 0010) {
-				btn_value = 2;
-				xil_printf("2\r\n");
-				break;
-			} else if (btn == 0100) {
-				btn_value = 3;
-				xil_printf("3\r\n");
-				break;
-			} else if (btn == 1000) {
-				btn_value = 4;
-				xil_printf("4\r\n");
-				break;
+
+			btn = XGpio_DiscreteRead(&BTNInst, 1);
+			if (btn != 0) {
+				xil_printf("Push Buttons Status %x\r\n", btn);
+				if (btn == 1) {
+					btn_value = 1;
+					xil_printf("1\r\n");
+					break;
+				} else if (btn == 2) {
+					btn_value = 2;
+					xil_printf("2\r\n");
+					break;
+				} else if (btn == 4) {
+					btn_value = 3;
+					xil_printf("3\r\n");
+					break;
+				} else if (btn == 8) {
+					btn_value = 4;
+					xil_printf("4\r\n");
+					break;
+				} else {
+					xil_printf("not 1 2 4 or 8: %x\r\n", btn);
+				}
 			}
 		}
-		xil_printf("working up to here3\r\n");
 
 		//keep the button pressed for your choice of the arithmetic/logical operation
 		switch(btn_value){
-		case 1: result=store_operands[0]^store_operands[1]; break;
-		/*****************************************************************************************/
-		//add the remaining cases here
-		//you may also use the default case to display nothing or some prompt message saying that no operation selected by user.
-		//in the case when no operation is selected, exit this task and go back to the TxTask if you want.
-		//you may also wait here until the user selects any operation, later on perform the calculation and then go to the TxTask.
-		/*****************************************************************************************/
-		case 2: result=store_operands[0]|store_operands[1]; break;
-		case 3: result=store_operands[0]&store_operands[1]; break;
-		case 4: result=store_operands[0]%store_operands[1]; break;
+			case 1: result=store_operands[0]^store_operands[1]; break; //XOR
+			/*****************************************************************************************/
+			//add the remaining cases here
+			//you may also use the default case to display nothing or some prompt message saying that no operation selected by user.
+			//in the case when no operation is selected, exit this task and go back to the TxTask if you want.
+			//you may also wait here until the user selects any operation, later on perform the calculation and then go to the TxTask.
+			/*****************************************************************************************/
+			case 2: result=store_operands[0]|store_operands[1]; break; //OR
+			case 3: result=store_operands[0]&store_operands[1]; break; //AND
+			case 4: result=store_operands[0]%store_operands[1]; break; //MOD
 		default: result=-1; break;
 		}
 
@@ -337,7 +341,7 @@ static void prvRxTask( void *pvParameters )
 		XGpio_DiscreteWrite(&SSDInst, 1, 0b10000000);
 
 		//we are now done doing the calculation so again go back to the task 1 (TxTask) to get the new inputs!
-		vTaskPrioritySet( xTxTask, ( uxPriority + 1 ) );
+		vTaskPrioritySet( xTxTask, ( uxPriority - 1 ) );
 
 	}
 }
