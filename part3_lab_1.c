@@ -245,7 +245,6 @@ static void prvRxTask( void *pvParameters )
 		xQueueReceive(xQueue, &store_operands[0], pdMS_TO_TICKS(1500));
 		xQueueReceive(xQueue, &store_operands[1], pdMS_TO_TICKS(1500));
 		xQueueReceive(xQueue, &store_operands[2], pdMS_TO_TICKS(1500));
-		//xil_printf(" working up to here? %i %i %i \n", store_operands[0], store_operands[1], store_operands[2]);
 
 		if (store_operands[0] < -2147483648 || store_operands[0] > 2147483647 ||
 				store_operands[1] < -2147483648 || store_operands[1] > 2147483647){
@@ -288,6 +287,8 @@ static void prvRxTask( void *pvParameters )
 					vTaskDelay( xDelay1500ms );
 					XGpio_DiscreteWrite(&RGBInst, 1, 0x00);
 					break;
+				} else {
+					xil_printf("%i is not a palindrome of %i\n", original, reversed);
 				}
 			}
 		}
