@@ -261,7 +261,7 @@ static void prvRxTask( void *pvParameters )
 
 			switch(store_operands[2]){
 				case 321: result = store_operands[0] + store_operands[1];
-					if(result < -2147483648 || result > 2147483648 ){
+					if(result < store_operands[0] || result < store_operands[1]){
 						xil_printf("ERROR: RESULT EXCEEDS MAX/MIN INT VALUE");
 					} else {
 						xil_printf("%i + %i = %i\n", store_operands[0], store_operands[1], result);
