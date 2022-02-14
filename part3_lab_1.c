@@ -248,7 +248,7 @@ static void prvRxTask( void *pvParameters )
 
 		if (store_operands[0] < -2147483648 || store_operands[0] > 2147483647 ||
 				store_operands[1] < -2147483648 || store_operands[1] > 2147483647){
-			xil_printf("ERROR: NUMBER EXCEEDS MAX/MIN INT VALUE");
+			xil_printf("ERROR: OVERFLOW");
 		} else {
 			int n, reversed = 0, remainder, original;
 			original = store_operands[0];
@@ -262,21 +262,24 @@ static void prvRxTask( void *pvParameters )
 			switch(store_operands[2]){
 				case 321: result = store_operands[0] + store_operands[1];
 					if(result < store_operands[0] || result < store_operands[1]){
-						xil_printf("ERROR: RESULT EXCEEDS MAX/MIN INT VALUE");
+						xil_printf("ERROR: OVERFLOW");
 					} else {
 						xil_printf("%i + %i = %i\n", store_operands[0], store_operands[1], result);
 					}
 					break;
 				case 322: result = store_operands[0] - store_operands[1];
-					if(result < -2147483648 || result > 2147483648 ){
-						xil_printf("ERROR: RESULT EXCEEDS MAX/MIN INT VALUE");
-					} else {
+					if((store_operands[1]<0) && (store_operands[0] < (-2147483648 - store_operands[1]))){
+						xil_printf("ERROR: OVERFLOW");
+					} else if((store_operands[1]>0) && (store_operands[0] > (-2147483648 - store_operands[1]))){
+						xil_printf("ERROR: OVERFLOW");			
+					}
+					else {
 					xil_printf("%i - %i = %i\n", store_operands[0], store_operands[1], result);
 					}
 					break;
 				case 323: result = store_operands[0] * store_operands[1];
 					if(store_operands[0]>(2147483648/store_operands[1])){
-						xil_printf("ERROR: RESULT EXCEEDS MAX/MIN INT VALUE");
+						xil_printf("ERROR: OVERFLOW");
 					} else {
 					xil_printf("%i x %i = %i\n", store_operands[0], store_operands[1], result);
 					}
