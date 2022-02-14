@@ -179,7 +179,7 @@ static void prvTxTask( void *pvParameters )
 	    	  // enter the function to dynamically change the priority when queue is full. This way when the queue is full here, we change the priority of this task.
 	    	  // and hence queue will be read in the receive task to perform the operation. If you change the priority here dynamically, make sure in the receive task to do the counter part!!!
 	    	  /*********************************/
-	    	  vTaskPrioritySet( xTxTask, ( uxPriority - 1 ) );
+	    	  vTaskPrioritySet( xTxTask, ( uxPriority - 2 ) );
 	      }
 
 	      // Print key detect if a new key is pressed or if status has changed
@@ -297,7 +297,14 @@ static void prvRxTask( void *pvParameters )
 			/*****************************************************************************************/
 			case 2: result=store_operands[0]|store_operands[1]; break; //OR
 			case 3: result=store_operands[0]&store_operands[1]; break; //AND
-			case 4: result=store_operands[0]%store_operands[1]; break; //MOD
+			case 4:
+				if (store_operands[1] == 0) {
+					result=-1;
+					break;
+				} else {
+					result=store_operands[0]%store_operands[1];
+					break; //MOD
+				}
 		default: result=-1; break;
 		}
 
@@ -341,7 +348,7 @@ static void prvRxTask( void *pvParameters )
 		XGpio_DiscreteWrite(&SSDInst, 1, 0b10000000);
 
 		//we are now done doing the calculation so again go back to the task 1 (TxTask) to get the new inputs!
-		vTaskPrioritySet( xTxTask, ( uxPriority - 1 ) );
+		vTaskPrioritySet( xTxTask, ( uxPriority + 1 ) );
 
 	}
 }
