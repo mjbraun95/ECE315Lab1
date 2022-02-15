@@ -246,17 +246,17 @@ static void prvRxTask( void *pvParameters )
 		xQueueReceive(xQueue, &store_operands[1], pdMS_TO_TICKS(1500));
 		xQueueReceive(xQueue, &store_operands[2], pdMS_TO_TICKS(1500));
 
-		if (store_operands[0] < -2147483648 || store_operands[0] > 2147483647 ||
-				store_operands[1] < -2147483648 || store_operands[1] > 2147483647){
+		if ((int)store_operands[0] < -2147483648 || (int)store_operands[0] > 2147483647 ||
+				(int)store_operands[1] < -2147483648 || (int)store_operands[1] > 2147483647){
 			xil_printf("ERROR: OVERFLOW");
 		} else {
 			int n, reversed = 0, remainder, original;
 			int n2, reversed2 = 0, remainder2, original2;
 
-			n = store_operands[0];
-			n2 = store_operands[1];
-			original = store_operands[0];
-			original2 = store_operands[1];
+			n = (int)store_operands[0];
+			n2 = (int)store_operands[1];
+			original = (int)store_operands[0];
+			original2 = (int)store_operands[1];
 			while (n!=0) {
 				remainder = n % 10;
 				reversed = reversed * 10 + remainder;
@@ -270,16 +270,16 @@ static void prvRxTask( void *pvParameters )
 
 			switch(store_operands[2]){
 				case 321: result = store_operands[0] + store_operands[1];
-					if(result < store_operands[0] || result < store_operands[1]){
+					if(result < (int)store_operands[0] || result < (int)store_operands[1]){
 						xil_printf("ERROR: OVERFLOW");
 					} else {
 						xil_printf("%i + %i = %i\n", store_operands[0], store_operands[1], result);
 					}
 					break;
 				case 322: result = store_operands[0] - store_operands[1];
-					if((store_operands[1]<0) && (store_operands[0] < (-2147483648 - store_operands[1]))){
+					if(((int)store_operands[1]<0) && ((int)store_operands[0] < (-2147483648 - (int)store_operands[1]))){
 						xil_printf("ERROR: OVERFLOW");
-					} else if((store_operands[1]>0) && (store_operands[0] > (-2147483648 - store_operands[1]))){
+					} else if(((int)store_operands[1]>0) && ((int)store_operands[0] > (-2147483648 - (int)store_operands[1]))){
 						xil_printf("ERROR: OVERFLOW");			
 					}
 					else {
@@ -287,7 +287,7 @@ static void prvRxTask( void *pvParameters )
 					}
 					break;
 				case 323: result = store_operands[0] * store_operands[1];
-					if(store_operands[0]>(2147483648/store_operands[1])){
+					if((int)store_operands[0]>(2147483648/(int)store_operands[1])){
 						xil_printf("ERROR: OVERFLOW");
 					} else {
 					xil_printf("%i x %i = %i\n", store_operands[0], store_operands[1], result);
