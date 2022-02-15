@@ -159,7 +159,7 @@ static void prvTxTask( void *pvParameters )
 	    	  // and hence queue will be read in the receive task to perform the operation. If you change the priority here dynamically, make sure in the receive task to do the counter part!!!
 	    	  /*********************************/
 
-	    	  vTaskPrioritySet( xTxTask, ( uxPriority -1 ) );
+	    	  vTaskPrioritySet( xTxTask, ( uxPriority - 2 ) );
 
 	      }
 
@@ -251,12 +251,21 @@ static void prvRxTask( void *pvParameters )
 			xil_printf("ERROR: OVERFLOW");
 		} else {
 			int n, reversed = 0, remainder, original;
-			original = store_operands[0];
+			int n2, reversed2 = 0, remainder2, original2;
+
 			n = store_operands[0];
+			n2 = store_operands[1];
+			original = store_operands[0];
+			original2 = store_operands[1];
 			while (n!=0) {
 				remainder = n % 10;
 				reversed = reversed * 10 + remainder;
 				n /= 10;
+			}
+			while (n2!=0) {
+				remainder2 = n2 % 10;
+				reversed2 = reversed2 * 10 + remainder2;
+				n2 /= 10;
 			}
 
 			switch(store_operands[2]){
@@ -286,13 +295,20 @@ static void prvRxTask( void *pvParameters )
 					break;
 				case 324: if(original == reversed) {
 					xil_printf("%i is a palindrome of %i\n", original, reversed);
-					XGpio_DiscreteWrite(&RGBInst, 1, WHITE_IN_RGB);
-					vTaskDelay( xDelay1500ms );
-					XGpio_DiscreteWrite(&RGBInst, 1, 0x00);
-					break;
 				} else {
 					xil_printf("%i is not a palindrome of %i\n", original, reversed);
 				}
+				if(original2 == reversed2) {
+					xil_printf("%i is a palindrome of %i\n", original2, reversed2);
+				} else {
+					xil_printf("%i is not a palindrome of %i\n", original2, reversed2);
+				}
+				if(original == reversed && original2 ==reversed2){
+					XGpio_DiscreteWrite(&RGBInst, 1, WHITE_IN_RGB);
+					vTaskDelay( xDelay1500ms );
+					XGpio_DiscreteWrite(&RGBInst, 1, 0x00);
+				}
+				break;
 			}
 		}
 
