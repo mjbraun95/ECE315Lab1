@@ -297,13 +297,13 @@ static void prvRxTask( void *pvParameters )
 			/*****************************************************************************************/
 			case 2: result=store_operands[0]|store_operands[1]; break; //OR
 			case 3: result=store_operands[0]&store_operands[1]; break; //AND
-			case 4:
+			case 4: //MOD
 				if (store_operands[1] == 0) {
 					result=-1;
 					break;
 				} else {
 					result=store_operands[0]%store_operands[1];
-					break; //MOD
+					break;
 				}
 		default: result=-1; break;
 		}
@@ -314,20 +314,27 @@ static void prvRxTask( void *pvParameters )
 		//the following logic is to extract the digits from the result. For example, 9x9=81 so we will first display 1 on right SSD and then 8 on the left SSD!
 		//please note that our operands are between 0 to 9 only. The result will never exceed a two-digit number in any case.
 
-
-		if(result<0)
-			xil_printf("Result is less than zero!!!\n");
-
-
-		vTaskDelay(pdMS_TO_TICKS(1500)); //this delay is merely to introduce the visual difference between the input operands and the output result!
-
-
 		//Compute MSB and LSB digits for 2-digit output
 		u8 lsb = result % 10;
 		u8 msb = result / 10;
 
-		u32 l_s_b = SSD_decode(lsb, 0);
-		u32 m_s_b = SSD_decode(msb, 1);
+		u32 l_s_b;
+		u32 m_s_b;
+
+		if(result<0) {
+			xil_printf("Result is less than zero!!!\n");
+			l_s_b = SSD_decode((lsb*-1), 0);
+			m_s_b = 0b11000000;
+		}
+		else {
+			l_s_b = SSD_decode(lsb, 0);
+			m_s_b = SSD_decode(msb, 1);
+		}
+
+		vTaskDelay(pdMS_TO_TICKS(1500)); //this delay is merely to introduce the visual difference between the input operands and the output result!
+
+
+
 
 		/**********************************************************************************/
 		//Use a for loop to display result for 100 Cycles (15ms + 15ms = 30 ms/loop iteration = output displayed for 3 seconds)
