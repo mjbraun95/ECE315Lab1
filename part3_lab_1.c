@@ -291,14 +291,14 @@ static void prvRxTask( void *pvParameters )
 					}
 					break;
 				case 324: if(original == reversed) {
-					xil_printf("%i is a palindrome of %i\n", original, reversed);
+					xil_printf("%i is a palindrome \n", original);
 				} else {
-					xil_printf("%i is not a palindrome of %i\n", original, reversed);
+					xil_printf("%i is not a palindrome \n", original);
 				}
 				if(original2 == reversed2) {
-					xil_printf("%i is a palindrome of %i\n", original2, reversed2);
+					xil_printf("%i is a palindrome \n", original2);
 				} else {
-					xil_printf("%i is not a palindrome of %i\n", original2, reversed2);
+					xil_printf("%i is not a palindrome \n", original2);
 				}
 				if(original == reversed && original2 ==reversed2){
 					XGpio_DiscreteWrite(&RGBInst, 1, WHITE_IN_RGB);
