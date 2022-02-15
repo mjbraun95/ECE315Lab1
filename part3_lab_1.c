@@ -277,20 +277,17 @@ static void prvRxTask( void *pvParameters )
 					}
 					break;
 				case 322: result = (int)store_operands[0] - (int)store_operands[1];
-					if(((int)store_operands[1]<0) && ((int)store_operands[0] < (-2147483648 - (int)store_operands[1]))){
+					if ( ((int)store_operands[0] > (int)store_operands[1] && result < 0) ||
+							((int)store_operands[0] < (int)store_operands[1] && result > 0) ) {
 						xil_printf("ERROR: OVERFLOW");
-					} else if(((int)store_operands[1]>0) && ((int)store_operands[0] > (-2147483648 - (int)store_operands[1]))){
-						xil_printf("ERROR: OVERFLOW");			
 					}
-					else {
 					xil_printf("%i - %i = %i\n", store_operands[0], store_operands[1], result);
-					}
 					break;
 				case 323: result = (int)store_operands[0] * (int)store_operands[1];
 					if((int)store_operands[0]>(2147483648/(int)store_operands[1])){
 						xil_printf("ERROR: OVERFLOW");
 					} else {
-					xil_printf("%i x %i = %i\n", store_operands[0], store_operands[1], result);
+						xil_printf("%i x %i = %i\n", store_operands[0], store_operands[1], result);
 					}
 					break;
 				case 324: if(original == reversed) {
